@@ -20,7 +20,7 @@ sudo apt install -y npm
 ```
 
 ### Nodejs-websocket
-This server depends on the `nodejs-websocket` NPM package to use the WebSocket API as to provide continuous connection between client and server. It is recommended to install only as a local package to this server. You can dig more info at the [official website](https://www.npmjs.com/)
+This server depends on the `ws` NPM package to use the WebSocket API as to provide continuous connection between client and server. It is recommended to install only as a local package to this server through the installation process below. You can dig more info at the [official website](https://www.npmjs.com/)
 
 # Installation on Linux systems
 Create a directory for this project and copy this repository
