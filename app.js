@@ -6,24 +6,35 @@ const WebSocket = require('ws');
 const ForkAPI = require('child_process');
 
 // Constants
-const numCPUs = require('os').cpus().length;
-
+const N_CPU = require('os').cpus().length;
+const RESOURCE_PATH = '/resources'
 // Global variables
 
 // Create first game server
-var game_servers = ForkAPI.fork('game_server/server.js');
 
+var game_servers = ForkAPI.fork('game_server/server.js');
+var available = null;
+
+
+game_servers.on('message', function(m) {
+  // Receive results from child process
+  console.log('PLog: ' + m);
+});
 // Create the app
 const app = express();
+app.use(express.static('resources'));
 
 app.get('/', function (req, res) {
-  res.sendFile('test.html', {"root": __dirname});
+  res.sendFile('index.html', {"root": __dirname + RESOURCE_PATH});
 })
 
 app.get('/requestserver', function(req, res) {
-  res.send('ws://localhost:8082')
+  game_servers.send('available');
+  res.send('ws://localhost:8082');
 })
 
 app.listen(8080, function () {
   console.log('Listening on 8080');
 });
+
+// app.use(express.static('resources'));
