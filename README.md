@@ -25,7 +25,7 @@ This server depends on the `ws` NPM package to use the WebSocket API as to provi
 # Installation on Linux systems
 Create a directory for this project and copy this repository
 ```bash
-mkidr space-technium && cd space-technium
+mkdir space-technium && cd space-technium
 git clone https://github.com/SpaceTechnium/server.git
 ```
 Install NPM packages
