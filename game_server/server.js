@@ -4,11 +4,18 @@ const WebSocket = require('ws');
 console.log(`Spawned proccess ` + process.pid);
 const wss = new WebSocket.Server({ port: 8082 });
 
+process.on('message', (m, socket) => {
+  console.log("GLog: " + m);
+  if (m === 'available') {
+    process.send('192.168.0.1:8082');
+  }
+});
+
 wss.on('connection', function connection(ws) {
 
   ws.on('message', function incoming(message) {
     console.log('received: %s', message);
-    ws.send('GAMESERVER pong: ' + message);
+    ws.send('GAMESERVER ponging urself');
   });
 
   ws.send("Started connection with GAMESERVER");
