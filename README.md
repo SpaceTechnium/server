@@ -13,6 +13,9 @@ curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
+## Octree in C++
+An Octree implementation in C++ with the use of templates and can be found [here](http://nomis80.org/code/octree.html)
+
 ## NPM
 NPM is the nodejs package manager and necessary for the dependencies
 ```
@@ -22,7 +25,6 @@ Now with NPM installed gyp will also be needed to build the c++ Octree
 ```
 sudo npm install -g node-gyp
 ```
-
 ### Nodejs-websocket
 This server depends on the `ws` NPM package to use the WebSocket API as to provide continuous connection between client and server. It is recommended to install only as a local package to this server through the installation process below. You can dig more info at the [official website](https://www.npmjs.com/)
 
