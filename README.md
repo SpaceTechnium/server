@@ -39,6 +39,7 @@ Install NPM packages
 cd server && npm install
 ```
 Compiling the C++ Octree Build
+Using info from [here](https://nodeaddons.com/automating-a-c-program-from-a-node-js-web-app/)
 ```
 cd octree/standalone && node-gyp configure build
 ```
