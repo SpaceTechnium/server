@@ -74,7 +74,7 @@ INCS_Release := \
 	-I$(srcdir)/..
 
 OBJS := \
-	$(obj).target/$(TARGET)/../demo.o \
+	$(obj).target/$(TARGET)/../OriginalOctree.o \
 	$(obj).target/$(TARGET)/test.o
 
 # Add to the list of files we specially track dependencies for.

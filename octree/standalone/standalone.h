@@ -1,1 +1,1 @@
-int demo(int argc, char* argv[], FILE *out);
+int entry(int argc, char* argv[], FILE *out);

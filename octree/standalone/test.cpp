@@ -4,5 +4,5 @@
 
 int main(int argc, char* argv[])
 {
-    demo(argc,argv,stdout);
+    entry(argc,argv,stdout);
 }

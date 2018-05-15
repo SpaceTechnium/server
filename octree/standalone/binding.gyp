@@ -3,7 +3,7 @@
     {
       "target_name": "octree",
       "type": "executable",
-      "sources": ["../demo.cpp", "test.cpp"],
+      "sources": ["../OriginalOctree.cpp", "test.cpp"],
       "cflags!": ["-fno-exceptions"],
       'cflags_cc!': [ '-fno-exceptions', "-Wall", "-std=c++11" ],
       "include_dirs" : ['../'],
