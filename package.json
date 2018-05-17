@@ -1,0 +1,28 @@
+{
+  "name": "server",
+  "version": "0.0.1",
+  "description": "Space technium server",
+  "main": "app.js",
+  "scripts": {
+    "test": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SpaceTechnium/server.git"
+  },
+  "keywords": [
+    "Server",
+    "MMOG",
+    "WebSockets"
+  ],
+  "author": "Victor Carvalho, Pedro Silva",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/SpaceTechnium/server/issues"
+  },
+  "homepage": "https://github.com/SpaceTechnium/server#readme",
+  "dependencies": {
+    "express": "^4.16.3",
+    "ws": "^5.0.0"
+  }
+}
