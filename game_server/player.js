@@ -2,8 +2,10 @@
 // Ship.js
 //================================================
 class Ship {
-    constructor() {
+    constructor(name, ws) {
         // Attributes
+        this.ws = ws;
+        this.player_name = name;
         this.pos_x = 0;
         this.pos_y = 0;
         this.pos_z = 0;
@@ -13,10 +15,6 @@ class Ship {
         this.score = 0;
         this.oscilation = 0;
         this.bullets    = [];
-    }
-
-    update(shipVector) {
-        //TODO: implement
     }
 }
 
