@@ -19,3 +19,5 @@ class Ship {
         //TODO: implement
     }
 }
+
+module.exports = Ship;

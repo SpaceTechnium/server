@@ -34,3 +34,5 @@ class Planet {
         this.planet.position.set(this.vectorPos.x + this.semiminor * Math.cos(performance.now()*this.speed), this.vectorPos.z, this.vectorPos.y + this.semimajor * Math.sin(performance.now()*this.speed));
     }
 }
+
+module.exports = Planet;

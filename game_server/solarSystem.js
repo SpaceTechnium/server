@@ -21,6 +21,14 @@ const SYSTEM_GLOBAL_HEIGHT_VARIATION = 50;
 const SUN_MIN_RADIUS    = 1;
 const SUN_MAX_RADIUS    = 30;
 
+class Vector3 {
+    constructor(x,y,z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+}
+
 class SolarSystem {
     // Arguments:
     // vectorPos			-> Position of center (Sun).
@@ -36,11 +44,10 @@ class SolarSystem {
         this.arrayPlanets = [];
     }
       
-    spawn(scene, randomizer) {
+    spawn(randomizer) {
         // Spawn Planets
         for (var i = 0; i < this.numPlanets; i++) {
             this.arrayPlanets.push(new Planet(this.pos, this.infoPlanets[i*4], this.infoPlanets[i*4+1], this.infoPlanets[i*4+2], this.infoPlanets[i*4+3], planet));
-            scene.add(planet);
         }
 
     }
@@ -76,7 +83,7 @@ class Universe {
                 }
                 this.solarSystems.push(
                     new SolarSystem(
-                        new THREE.Vector3(
+                        new Vector3(
                             i*SYSTEM_X_DIST + (randomizer.genrand_int31() % MAX_PLANETS_IN_SYSTEM) - SOLAR_SYSTEM_W * (SYSTEM_X_DIST/2),
                             j*SYSTEM_Y_DIST + (randomizer.genrand_int31() % MAX_PLANETS_IN_SYSTEM) - SOLAR_SYSTEM_H * (SYSTEM_Y_DIST/2),
                             (((i+j)%4) - 2) * (randomizer.genrand_int31() % SYSTEM_DIST_MAX_HEIGHT_DIFF) + (randomizer.genrand_int31() % SYSTEM_GLOBAL_HEIGHT_VARIATION) - (SYSTEM_GLOBAL_HEIGHT_VARIATION)),
@@ -91,7 +98,7 @@ class Universe {
 
     spawn(scene, randomizer) {
         for (var i = 0; i < (SOLAR_SYSTEM_W * SOLAR_SYSTEM_H); i++)
-            this.solarSystems[i].spawn(scene, randomizer);
+            this.solarSystems[i].spawn(randomizer);
     }
 
     update() {
@@ -100,3 +107,5 @@ class Universe {
             this.solarSystems[i].update();
     }
 }
+
+module.exports = Universe;
