@@ -42,6 +42,11 @@ class Planet {
         this.pos = vectorPos;
         this.radius = radius;
     }
+    
+    // Update planet position.
+    update(tick) {
+        this.planet.position.set(this.vectorPos.x + this.semiminor * Math.cos(tick*this.speed), this.vectorPos.z, this.vectorPos.y + this.semimajor * Math.sin(tick*this.speed));
+    }
 }
 
 module.exports = Planet;
@@ -71,7 +76,7 @@ class SolarSystem {
     // Update Planets.
     update() {
         for (var i = 0; i < this.numPlanets; i++) {
-            this.arrayPlanets[i].update();
+            this.arrayPlanets[i].update(tick);
         }
     }
 
@@ -112,10 +117,10 @@ class Universe {
             this.solarSystems[i].spawn(randomizer);
     }
 
-    update() {
+    update(tick) {
         // Update Solar Systems.
         for (var i = 0; i < (SOLAR_SYSTEM_W * SOLAR_SYSTEM_H); i++)
-            this.solarSystems[i].update();
+            this.solarSystems[i].update(tick);
     }
 }
 
