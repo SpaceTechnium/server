@@ -29,6 +29,23 @@ class Vector3 {
     }
 }
 
+class Planet {
+    // Arguments:
+    // vectorPos			-> Position of one focus of the orbit (Sun Focus).
+    // radius				-> Planet radius.
+    // speed				-> Orbit Speed.
+    // semiminor			-> Semiminor distance.
+    // semimajor			-> Semimajor distance.
+    // planet				-> Planet Object3D.
+
+    constructor(vectorPos, radius) {
+        this.pos = vectorPos;
+        this.radius = radius;
+    }
+}
+
+module.exports = Planet;
+
 class SolarSystem {
     // Arguments:
     // vectorPos			-> Position of center (Sun).
@@ -47,9 +64,8 @@ class SolarSystem {
     spawn(randomizer) {
         // Spawn Planets
         for (var i = 0; i < this.numPlanets; i++) {
-            this.arrayPlanets.push(new Planet(this.pos, this.infoPlanets[i*4], this.infoPlanets[i*4+1], this.infoPlanets[i*4+2], this.infoPlanets[i*4+3], planet));
+            this.arrayPlanets.push(new Planet(this.pos, this.infoPlanets[i]));
         }
-
     }
 
     // Update Planets.
@@ -75,11 +91,6 @@ class Universe {
     
                 for (var k = 0; k < numPlanets; k++) {
                     infoPlanets.push(PLANET_MIN_RADIUS + (randomizer.genrand_int31() % PLANET_MAX_RADIUS)); 
-                    infoPlanets.push(PLANET_MIN_SPEED + (randomizer.genrand_real1() * PLANET_MAX_SPEED));
-                    infoPlanets.push(semiminor + (randomizer.genrand_real1() * k));
-                    infoPlanets.push(semimajor + (randomizer.genrand_real1() * k));
-                    semiminor += SEMI_MINOR_OFFSET;
-                    semimajor += SEMI_MAJOR_OFFSET;
                 }
                 this.solarSystems.push(
                     new SolarSystem(
@@ -96,7 +107,7 @@ class Universe {
         }
     }
 
-    spawn(scene, randomizer) {
+    spawn(randomizer) {
         for (var i = 0; i < (SOLAR_SYSTEM_W * SOLAR_SYSTEM_H); i++)
             this.solarSystems[i].spawn(randomizer);
     }
