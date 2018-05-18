@@ -21,14 +21,15 @@ const SYSTEM_GLOBAL_HEIGHT_VARIATION = 50;
 const SUN_MIN_RADIUS    = 1;
 const SUN_MAX_RADIUS    = 30;
 
-const TypeGen = Object.freeze({"real1":1, "int31":2});
+const REAL1 = 0;
+const INT31 = 1;
 
-function placeboGen(Type, repeat = 1) {
-    if(Type == TypeGen.real1){
+function placeboGen(randomizer, Type, repeat = 1) {
+    if(Type == REAL1){
         while(repeat--)
             randomizer.genrand_real1();
     }
-    else if(Type == TypeGen.int31) {
+    else if(Type == INT31) {
         while(repeat--)
             randomizer.genrand_int31();
     }
@@ -74,7 +75,9 @@ class Planet {
 
     // Update planet position.
     update(tick) {
-        this.planet.position.set(this.vectorPos.x + this.semiminor * Math.cos(tick * this.speed), this.vectorPos.z, this.vectorPos.y + this.semimajor * Math.sin(tick * this.speed));
+        this.pos = this.vectorPos.x + this.semiminor * Math.cos(tick * this.speed);
+        this.pos.y = this.vectorPos.y + this.semimajor * Math.sin(tick * this.speed);
+        this.pos.z = this.vectorPos.z;
     }
 }
 
@@ -99,12 +102,12 @@ class SolarSystem {
       
     spawn(randomizer, id) {
         // Spawn Sun.
-        placeboGen(real1,2);
+        placeboGen(randomizer, REAL1, 2);
         this.id = id++;
 
         // Spawn Planets
         for (var i = 0; i < this.numPlanets; i++) {
-            placeboGen(real1,3);
+            placeboGen(randomizer, REAL1, 3);
             this.arrayPlanets.push(new Planet(this.pos, this.infoPlanets[i*4], this.infoPlanets[i*4+1], this.infoPlanets[i*4+2], this.infoPlanets[i*4+3]),id++);
         }
     }

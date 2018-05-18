@@ -5,6 +5,10 @@ const {Vector3, Bullet, Player} = require("./player.js");
 const Universe = require("./solarSystem.js");
 const MersenneTwister = require('./mersenne-twister.js');
 
+const {
+  performance
+} = require('perf_hooks');
+
 const wss = new WebSocket.Server({ port: 8082 });
 const MARSENNE_SEED = 42;
 const TICKRATE = 30;
