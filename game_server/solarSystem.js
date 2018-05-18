@@ -115,7 +115,7 @@ class SolarSystem {
 
     // Update Planets.
     update(tick) {
-        for (var i = 0; i < this.numPlanets; i++) {
+        for (var i = 0; i < this.numPlanets.length; i++) {
             this.arrayPlanets[i].update(tick);
         }
     }
