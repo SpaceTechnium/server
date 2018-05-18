@@ -24,11 +24,11 @@ const SUN_MAX_RADIUS    = 30;
 const TypeGen = Object.freeze({"real1":1, "int31":2});
 
 function placeboGen(Type, repeat = 1) {
-    if(Type == Typegen.real1){
+    if(Type == TypeGen.real1){
         while(repeat--)
             randomizer.genrand_real1();
     }
-    else if(Type == Typegen.int31) {
+    else if(Type == TypeGen.int31) {
         while(repeat--)
             randomizer.genrand_int31();
     }
