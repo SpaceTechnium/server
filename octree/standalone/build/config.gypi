@@ -41,6 +41,7 @@
     "node_shared_openssl": "false",
     "node_shared_zlib": "false",
     "node_tag": "",
+    "node_target_type": "executable",
     "node_use_bundled_v8": "true",
     "node_use_dtrace": "false",
     "node_use_etw": "false",
@@ -65,7 +66,7 @@
     "v8_trace_maps": 0,
     "v8_use_snapshot": "true",
     "want_separate_host_toolset": 0,
-    "nodedir": "/home/pmsilva1/.node-gyp/8.11.1",
+    "nodedir": "/home/pmsilva1/.node-gyp/8.11.2",
     "standalone_static_library": 1
   }
 }

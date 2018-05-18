@@ -33,10 +33,10 @@ CFLAGS_CC_Debug := \
 	-std=gnu++0x
 
 INCS_Debug := \
-	-I/home/pmsilva1/.node-gyp/8.11.1/include/node \
-	-I/home/pmsilva1/.node-gyp/8.11.1/src \
-	-I/home/pmsilva1/.node-gyp/8.11.1/deps/uv/include \
-	-I/home/pmsilva1/.node-gyp/8.11.1/deps/v8/include \
+	-I/home/pmsilva1/.node-gyp/8.11.2/include/node \
+	-I/home/pmsilva1/.node-gyp/8.11.2/src \
+	-I/home/pmsilva1/.node-gyp/8.11.2/deps/uv/include \
+	-I/home/pmsilva1/.node-gyp/8.11.2/deps/v8/include \
 	-I$(srcdir)/..
 
 DEFS_Release := \
@@ -67,10 +67,10 @@ CFLAGS_CC_Release := \
 	-std=gnu++0x
 
 INCS_Release := \
-	-I/home/pmsilva1/.node-gyp/8.11.1/include/node \
-	-I/home/pmsilva1/.node-gyp/8.11.1/src \
-	-I/home/pmsilva1/.node-gyp/8.11.1/deps/uv/include \
-	-I/home/pmsilva1/.node-gyp/8.11.1/deps/v8/include \
+	-I/home/pmsilva1/.node-gyp/8.11.2/include/node \
+	-I/home/pmsilva1/.node-gyp/8.11.2/src \
+	-I/home/pmsilva1/.node-gyp/8.11.2/deps/uv/include \
+	-I/home/pmsilva1/.node-gyp/8.11.2/deps/v8/include \
 	-I$(srcdir)/..
 
 OBJS := \

@@ -1,13 +1,16 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
-#include <cmath>
+#include <math.h>
 #include <time.h>
 #include <ctime>
+#include <string.h>
 
 using namespace std;
 
-enum Type{Planet, Player, Bullet};
+enum Type{Bullet, Planet, Player};
+enum Collision{Conquest, CollisionBullet, CollisionPlanet};
+
 int maxDepth = 0;
 bool debug = false;
 
@@ -19,8 +22,10 @@ struct Point
 
 struct Object
 {
+    char *name;
     Point *point;
     double boundingBox;
+    double radius;
     Type type;
     struct Object *next;
     bool inBorder = false;
@@ -37,6 +42,8 @@ struct Node
     struct Object *object;
     struct Node **children;
 };
+
+Node *rooted;
 
 void initialize(Node *root, int scope)
 {
@@ -142,88 +149,6 @@ int calcSector(Point *center, Object *object)
     return -1;
 }
 
-void insert(Node *root, Object *object)
-{
-    int sector = -1;
-    if(root->depth != maxDepth)
-    {
-        sector = calcSector(root->center,object);
-        if(sector == -1) object->inBorder = true;
-    }
-
-    if(root->depth == maxDepth || sector == -1)
-    {
-        Object *tmp = root->object;
-        object->next = tmp;
-        root->object = object;
-        root->numObjects++;
-        return;
-    }
-
-    if(sector >= 0)
-    {
-        if(root->object!=NULL && root->firstObject)
-        {
-            Object *tempy = root->object;
-            root->object = NULL;
-            root->firstObject = false;
-            root->numObjects--;
-            insert(root,tempy);
-        }
-
-        if(root->children[sector]!=NULL)
-        {
-            insert(root->children[sector],object);
-        }
-        else
-        {
-            root->children[sector] = new Node;
-            initNode(root,root->children[sector],sector);  
-            root->children[sector]->object = object;
-            root->children[sector]->numObjects++;
-        } 
-    }
-    if(debug)debug=false; 
-}
-
-bool checkCollision(Object *a, Object *b)
-{
-    double distance = pow(a->point->x - b->point->x, 2.0) + pow(a->point->y - b->point->y, 2.0) + pow(a->point->z - b->point->z, 2.0);
-    double radius = pow(a->boundingBox + b->boundingBox,2);
-    
-    return distance < radius;
-}
-
-void collision(Node *root, Object *object)
-{
-    if(root->numObjects != 0)
-    {
-        Object *tmp = root->object;
-        while(tmp)
-        {
-            if(checkCollision(object,tmp))
-            {
-                cout<<object->type<<"("<<object->point->x<<","<<object->point->y<<","<<object->point->z<<") "<<object->boundingBox<<"\t"<<tmp->type<<"("<<tmp->point->x<<","<<tmp->point->y<<","<<tmp->point->z<<") "<<tmp->boundingBox<<endl;
-            }
-            tmp = tmp->next;
-        }
-    }
-
-    if(root->depth == maxDepth)return;
-
-    int sector = calcSector(root->center,object);
-    if(sector == -1)
-    {
-        for(int i = 0;i < 8;i++)
-            collision(root->children[i],object);
-    }
-    
-    if(sector >= 0)
-    {
-        collision(root->children[sector],object);
-    }
-}
-
 void print_helper(Node *root, int lvl, int child)
 {
     if(root == NULL) return;
@@ -267,20 +192,317 @@ void print(Node *root)
     }
 }
 
+bool insert(Node *root, Object *object)
+{
+    int sector = -1;
+    if(root->depth != maxDepth)
+    {
+        sector = calcSector(root->center,object);
+        if(sector == -1) object->inBorder = true;
+    }
+    if(root->depth == maxDepth || sector == -1)
+    {   
+        Object *tmp = root->object;
+        object->next = tmp;
+        root->object = object;
+        root->firstObject = false;
+        root->numObjects++;
+        return 0;
+    }
+
+    if(sector >= 0)
+    {
+        if(root->object!=NULL && root->firstObject)
+        {
+            Object *tempy = root->object;
+            root->object = NULL;//tempy->next;
+            root->firstObject = false;
+            root->numObjects--;
+            insert(root,tempy);
+        }
+
+        if(root->children[sector]!=NULL)
+        {
+            insert(root->children[sector],object);
+            return 1;
+        }
+        else
+        {
+            root->children[sector] = new Node;
+            initNode(root,root->children[sector],sector);  
+            root->children[sector]->object = object;
+            root->children[sector]->numObjects++;
+        } 
+    }
+    return 1;
+}
+
+int checkCollision(Object *a, Object *b)
+{
+    double distance = pow(a->point->x - b->point->x, 2.0) + pow(a->point->y - b->point->y, 2.0) + pow(a->point->z - b->point->z, 2.0);
+    double box1 = pow(a->boundingBox,2), box2 = pow(b->boundingBox,2);
+    double radius = pow(b->radius,2);
+    
+    if(distance <= (box1 + box2*radius))
+        return 0;   // colisao com planeta
+
+    if(distance <= (box1+box2))
+        return 1;   // colisao com bounding box
+    
+    return -1;       // ain't a colisao
+}
+
+void collision(Node *root, Object *object, char * response)
+{
+    int collisionCheck;
+    char reply[300];
+
+    if(root == NULL) return;
+    
+    if(root->numObjects != 0)
+    {
+        Object *tmp = root->object;
+        while(tmp)
+        {
+            collisionCheck = checkCollision(object,tmp);
+            if(collisionCheck != -1)
+            {
+                sprintf(reply,
+                "{\"player\":[\"name\":\"%s\",\"pos_x\":%lf,\"pos_y\":%lf,\"pos_z\":%lf],\"object\":[\"uuid\":\"%s\",\"pos_x\":%lf,\"pos_y\":%lf,\"pos_z\":%lf,\"conquest\":%d,\"planet\":%d]}\0",
+                    object->name,object->point->x,object->point->y,object->point->z,tmp->name,tmp->point->x,tmp->point->y,tmp->point->z,collisionCheck,tmp->type
+                );
+                strcat(response,reply);
+                //cout<<object->type<<"("<<object->point->x<<","<<object->point->y<<","<<object->point->z<<") "<<object->boundingBox<<"\t"<<tmp->type<<"("<<tmp->point->x<<","<<tmp->point->y<<","<<tmp->point->z<<") "<<tmp->boundingBox<<endl;
+            }
+            tmp = tmp->next;
+        }
+    }
+
+    if(root->depth == maxDepth)return;
+
+    int sector = calcSector(root->center,object);
+    if(sector == -1)
+    {
+        for(int i = 0;i < 8;i++)
+            collision(root->children[i],object,response);
+    }
+    
+    if(sector >= 0)
+    {
+        collision(root->children[sector],object,response);
+    }
+}
+
+bool getValues(char **stringy, char *name, double *x, double *y, double *z, double *box, double *radius)
+{
+    char *string = stringy[0];
+    int coordsAccessed = 0;
+    (*x) = (*y) = (*z) = (*box) = -1;
+    char buff[20];
+
+    while(string[0] != '}' && string[0] != '\0')
+    {
+        string++;
+        
+        strncpy(buff,string,8);
+        buff[8] = '\0';
+
+        if(strcmp(buff,"\"pos_x\":") == 0)
+        {
+            string +=8;
+            strncpy(buff,string,20);
+            for(int i=0; buff[i] != '\0'; string++, i++)
+            {
+                if(buff[i] == '}' || buff[i] == ',')
+                {
+                    buff[i] = '\0';
+                    break;
+                }
+            }
+            (*x) = strtod(buff, NULL);
+            coordsAccessed++;
+            continue;
+        }
+        else if(strcmp(buff,"\"pos_y\":") == 0)
+        {
+            string +=8;
+            strncpy(buff,string,20);
+            for(int i = 0; buff[i] != '\0'; string++, i++)
+            {
+                if(buff[i] == '}' || buff[i] == ',')
+                {
+                    buff[i] = '\0';
+                    break;
+                }
+            }
+            (*y) = strtod(buff, NULL);
+            coordsAccessed++;
+            continue;
+        }
+        else if(strcmp(buff, "\"pos_z\":") == 0)
+        {
+            string +=8;
+            strncpy(buff,string,20);
+            for(int i = 0; buff[i] != '\0'; string++, i++)
+            {
+                if(buff[i] == '}' || buff[i] == ',')
+                {
+                    buff[i] = '\0';
+                    break;
+                }
+            }
+            (*z) = strtod(buff, NULL);
+            coordsAccessed++;
+            continue;
+        }
+        else if(strcmp(buff, "\"radis\":") == 0)
+        {
+            string +=8;
+            strncpy(buff,string,20);
+            for(int i = 0; buff[i] != '\0'; string++, i++)
+            {
+                if(buff[i] == '}' || buff[i] == ',')
+                {
+                    buff[i] = '\0';
+                    break;
+                }
+            }
+            (*radius) = strtod(buff, NULL);
+            continue;
+        }
+        else if(strcmp(buff, "\"name\":\"") == 0 || strcmp(buff, "\"uuid\":\"") == 0)
+        {
+            string += 8;
+            strncpy(buff,string,20);
+            for(int i = 0; buff[i] != '\0'; string++, i++)
+            {
+                if(buff[i] == '}' || buff[i] == ',')
+                {
+                    buff[i] = '\0';
+                    break;
+                }
+            }
+            strcpy(name,buff);
+            continue;
+        }
+        else
+        {
+            strncpy(buff,string,11);
+            buff[11] = '\0';
+            if(strcmp(buff, "\"boundbox\":") == 0)
+            {
+                string +=11;
+                strncpy(buff,string,20);
+                for(int i = 0; buff[i] != '\0'; string++, i++)
+                {
+                    if(buff[i] == '}' || buff[i] == ',')
+                    {
+                        buff[i] = '\0';
+                        break;
+                    }
+                }
+                (*box) = strtod(buff, NULL);
+                continue;
+            }
+        }
+    }
+
+    if((*box) == -1)(*box) = 0;
+    string++;
+    if(string[0] == ',') string++;
+
+    stringy[0] = string;
+
+    if(coordsAccessed == 3) return true;
+    else return false;
+}
+
 int entry(int argc, char* argv[], FILE *out)
 {
     clock_t begin_time, end_time;
     double insertionTime, collisionTime;
     Node *root = new Node;
     initialize(root,2048);
-    srand (time(NULL));//1526338465
+    rooted = root;
+    //srand (time(NULL));//1526338465
     Object *tmp;
-
-    Type type = Planet;
-
+    char *string = argv[1]; // new char[2048];
+    
+    strcpy(string,"{\"planets\":[{\"pos_x\":882.277,\"pos_y\":390.1,\"pos_z\":109.18,\"radis\":10,\"boundbox\":5},{\"pos_x\":493.464,\"pos_y\":451.908,\"pos_z\":837.736,\"radis\":2,\"boundbox\":30},{\"pos_x\":99.268,\"pos_y\":311.388,\"pos_z\":937.991,\"radis\":30,\"boundbox\":15}],\"bullets\":[{\"pos_x\":200,\"pos_y\":300,\"pos_z\":400,\"boundbox\":0}],\"players\":[{\"name\":\"Claudex\",\"pos_x\":882,\"pos_y\":391,\"pos_z\":108,\"boundbox\":11},{\"name\":\"Vitones\",\"pos_x\":483,\"pos_y\":445,\"pos_z\":840,\"boundbox\":12},{\"name\":\"Pedroscas\",\"pos_x\":200,\"pos_y\":300,\"pos_z\":400,\"boundbox\":13}]}\0"); //argv[1])
+    char *name = NULL;
+    char buff[50];
+    char response[4096] = "{\"collisions\":[\0"; // 
+    double x, y, z, box, radius;
     begin_time = clock();
-
-    for(int i = 0; i < 0; i++)
+    
+    for(; string[0] != '\0';)
+    {
+        if(string[0] == '}') break;
+        if(string[0] == '{') string++;
+        strncpy(buff,string,9); // cuts string to get the key
+        buff[9] = '\0';
+        string +=11;
+        if(strcmp(buff,"\"planets\"") == 0)
+        {
+            while(string[0] != ']' && string[0] != '\0')
+            {  
+                name = new char[50];
+                if(!getValues(&string, name, &x, &y, &z, &box, &radius)) return 0;
+                Point *p = new Point(x,y,z);
+                tmp = new Object(p);
+                tmp->name = name;
+                tmp->boundingBox = box;
+                tmp->radius = radius;
+                tmp->type = Planet;
+                tmp->next = NULL;
+                insert(root,tmp);
+            }
+            string++;
+            if(string[0] == ',')string++;             
+        }
+        else if(strcmp(buff,"\"bullets\"") == 0)
+        {
+            while(string[0] != ']' && string[0] != '\0')
+            {
+                name = new char[50];
+                if(!getValues(&string, name, &x, &y, &z, &box, &radius)) return 0;
+                Point *p = new Point(x,y,z);
+                tmp = new Object(p);
+                tmp->name = name;
+                tmp->boundingBox = box;
+                tmp->radius = radius;
+                tmp->type = Bullet;
+                tmp->next = NULL;
+                insert(root,tmp);
+            }
+            string++;
+            if(string[0] == ',')string++;             
+        }
+        else if(strcmp(buff,"\"players\"") == 0)
+        {
+            debug = true;   
+            while(string[0] != ']' && string[0] != '\0')
+            {
+                             
+                name = new char[15];
+                if(!getValues(&string, name, &x, &y, &z, &box, &radius)) return 0;
+                Point *p = new Point(x,y,z);
+                tmp = new Object(p);
+                tmp->name = name;
+                tmp->boundingBox = box;
+                tmp->radius = radius;
+                tmp->type = Player;
+                tmp->next = NULL;
+                collision(root,tmp,response);
+            }
+            string++;
+            if(string[0] == ',')string++;             
+        }
+    }
+    
+    
+    /*
+    for(int i = 0; i < 3; i++)
     {
         Point *p = new Point(rand() % 2049 + (-1024),rand() % 2049 + (-1024),rand() % 2049 + (-1024));
         tmp = new Object(p);
@@ -290,7 +512,7 @@ int entry(int argc, char* argv[], FILE *out)
         insert(root,tmp);
     }
 
-    for(int i = 0; i < 10000000; i++)
+    for(int i = 0; i < 1; i++)
     {
         Point *p = new Point(rand() % 2049 + (-1024),rand() % 2049 + (-1024),rand() % 2049 + (-1024));
         tmp = new Object(p);
@@ -304,23 +526,27 @@ int entry(int argc, char* argv[], FILE *out)
     insertionTime = double(end_time - begin_time) / CLOCKS_PER_SEC * 1000;
     
     begin_time = clock();
-    for(int i = 0; i < 1000; i++)
+    for(int i = 0; i < 3; i++)
     {
         Point *p = new Point(rand() % 2049 + (-1024),rand() % 2049 + (-1024),rand() % 2049 + (-1024));
         tmp = new Object(p);
         tmp->boundingBox = 5;
         tmp->type = Player;
         tmp->next = NULL;
-        collision(root,tmp);
+        collision(root,tmp,response);
     }
     end_time = clock();
     
     collisionTime = double(end_time - begin_time) / CLOCKS_PER_SEC * 1000;
+    */
 
-    cout <<"Insertion Time Taken: " << insertionTime << " ms\n"<<endl;
+    /*cout <<"Insertion Time Taken: " << insertionTime << " ms\n"<<endl;
     cout <<"Collision Time Taken: " << collisionTime << " ms\n"<<endl;
-    cout <<"Total Time Taken: " << insertionTime + collisionTime << " ms\n"<<endl;
+    cout <<"Total Time Taken: " << insertionTime + collisionTime << " ms\n"<<endl;*/
     //print(root);
-    //fprintf(out,"Heyo bitches %dislit",69420);
-    return 0;
+
+    sprintf(buff, "}\n\nTime Taken to run: %lf\n\0", insertionTime);
+    strcat(response,buff);
+    fprintf(out,"%s",response);
+    return 1;
 }
