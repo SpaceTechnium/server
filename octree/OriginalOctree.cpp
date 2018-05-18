@@ -23,6 +23,7 @@ struct Point
 struct Object
 {
     char *name;
+    int id;
     Point *point;
     double boundingBox;
     double radius;
@@ -268,8 +269,8 @@ void collision(Node *root, Object *object, char * response)
             if(collisionCheck != -1)
             {
                 sprintf(reply,
-                "{\"player\":[\"name\":\"%s\",\"pos_x\":%lf,\"pos_y\":%lf,\"pos_z\":%lf],\"object\":[\"uuid\":\"%s\",\"pos_x\":%lf,\"pos_y\":%lf,\"pos_z\":%lf,\"conquest\":%d,\"planet\":%d]}\0",
-                    object->name,object->point->x,object->point->y,object->point->z,tmp->name,tmp->point->x,tmp->point->y,tmp->point->z,collisionCheck,tmp->type
+                "{\"player\":[\"name\":\"%s\",\"pos_x\":%lf,\"pos_y\":%lf,\"pos_z\":%lf],\"object\":[\"uuid\":\"%d\",\"pos_x\":%lf,\"pos_y\":%lf,\"pos_z\":%lf,\"conquest\":%d,\"planet\":%d]}\0",
+                    object->name,object->point->x,object->point->y,object->point->z,tmp->id,tmp->point->x,tmp->point->y,tmp->point->z,collisionCheck,tmp->type
                 );
                 strcat(response,reply);
                 //cout<<object->type<<"("<<object->point->x<<","<<object->point->y<<","<<object->point->z<<") "<<object->boundingBox<<"\t"<<tmp->type<<"("<<tmp->point->x<<","<<tmp->point->y<<","<<tmp->point->z<<") "<<tmp->boundingBox<<endl;
@@ -293,7 +294,7 @@ void collision(Node *root, Object *object, char * response)
     }
 }
 
-bool getValues(char **stringy, char *name, double *x, double *y, double *z, double *box, double *radius)
+bool getValues(char **stringy, char *name, double *x, double *y, double *z, double *box, double *radius, int *id)
 {
     char *string = stringy[0];
     int coordsAccessed = 0;
@@ -370,7 +371,22 @@ bool getValues(char **stringy, char *name, double *x, double *y, double *z, doub
             (*radius) = strtod(buff, NULL);
             continue;
         }
-        else if(strcmp(buff, "\"name\":\"") == 0 || strcmp(buff, "\"uuid\":\"") == 0)
+        else if(strcmp(buff, "\"uniid\":") == 0 && id != NULL)
+        {
+            string += 8;
+            strncpy(buff,string,20);
+            for(int i = 0; buff[i] != '\0'; string++, i++)
+            {
+                if(buff[i] == '}' || buff[i] == ',')
+                {
+                    buff[i] = '\0';
+                    break;
+                }
+            }
+            (*id) = strtol(buff, NULL, 10);
+            continue;
+        }
+        else if(strcmp(buff, "\"name\":\"") == 0 && name != NULL)
         {
             string += 8;
             strncpy(buff,string,20);
@@ -428,11 +444,12 @@ int entry(int argc, char* argv[], FILE *out)
     Object *tmp;
     char *string = argv[1]; // new char[2048];
     
-    strcpy(string,"{\"planets\":[{\"pos_x\":882.277,\"pos_y\":390.1,\"pos_z\":109.18,\"radis\":10,\"boundbox\":5},{\"pos_x\":493.464,\"pos_y\":451.908,\"pos_z\":837.736,\"radis\":2,\"boundbox\":30},{\"pos_x\":99.268,\"pos_y\":311.388,\"pos_z\":937.991,\"radis\":30,\"boundbox\":15}],\"bullets\":[{\"pos_x\":200,\"pos_y\":300,\"pos_z\":400,\"boundbox\":0}],\"players\":[{\"name\":\"Claudex\",\"pos_x\":882,\"pos_y\":391,\"pos_z\":108,\"boundbox\":11},{\"name\":\"Vitones\",\"pos_x\":483,\"pos_y\":445,\"pos_z\":840,\"boundbox\":12},{\"name\":\"Pedroscas\",\"pos_x\":200,\"pos_y\":300,\"pos_z\":400,\"boundbox\":13}]}\0"); //argv[1])
+    //strcpy(string,"{\"planets\":[{\"pos_x\":882.277,\"pos_y\":390.1,\"pos_z\":109.18,\"radis\":10,\"boundbox\":5},{\"pos_x\":493.464,\"pos_y\":451.908,\"pos_z\":837.736,\"radis\":2,\"boundbox\":30},{\"pos_x\":99.268,\"pos_y\":311.388,\"pos_z\":937.991,\"radis\":30,\"boundbox\":15}],\"bullets\":[{\"pos_x\":200,\"pos_y\":300,\"pos_z\":400,\"boundbox\":0}],\"players\":[{\"name\":\"Claudex\",\"pos_x\":882,\"pos_y\":391,\"pos_z\":108,\"boundbox\":11},{\"name\":\"Vitones\",\"pos_x\":483,\"pos_y\":445,\"pos_z\":840,\"boundbox\":12},{\"name\":\"Pedroscas\",\"pos_x\":200,\"pos_y\":300,\"pos_z\":400,\"boundbox\":13}]}\0"); //argv[1])
     char *name = NULL;
     char buff[50];
     char response[4096] = "{\"collisions\":[\0"; // 
     double x, y, z, box, radius;
+    int id;
     begin_time = clock();
     
     for(; string[0] != '\0';)
@@ -446,10 +463,10 @@ int entry(int argc, char* argv[], FILE *out)
         {
             while(string[0] != ']' && string[0] != '\0')
             {  
-                name = new char[50];
-                if(!getValues(&string, name, &x, &y, &z, &box, &radius)) return 0;
+                if(!getValues(&string, NULL, &x, &y, &z, &box, &radius, &id)) return 0;
                 Point *p = new Point(x,y,z);
                 tmp = new Object(p);
+                tmp->id = id;
                 tmp->name = name;
                 tmp->boundingBox = box;
                 tmp->radius = radius;
@@ -464,11 +481,11 @@ int entry(int argc, char* argv[], FILE *out)
         {
             while(string[0] != ']' && string[0] != '\0')
             {
-                name = new char[50];
-                if(!getValues(&string, name, &x, &y, &z, &box, &radius)) return 0;
+                if(!getValues(&string, NULL, &x, &y, &z, &box, &radius, &id)) return 0;
                 Point *p = new Point(x,y,z);
                 tmp = new Object(p);
                 tmp->name = name;
+                tmp->id = id;
                 tmp->boundingBox = box;
                 tmp->radius = radius;
                 tmp->type = Bullet;
@@ -485,7 +502,7 @@ int entry(int argc, char* argv[], FILE *out)
             {
                              
                 name = new char[15];
-                if(!getValues(&string, name, &x, &y, &z, &box, &radius)) return 0;
+                if(!getValues(&string, name, &x, &y, &z, &box, &radius, NULL)) return 0;
                 Point *p = new Point(x,y,z);
                 tmp = new Object(p);
                 tmp->name = name;
