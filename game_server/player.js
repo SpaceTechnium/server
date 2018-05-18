@@ -10,7 +10,8 @@ const BULLET_BOUNDING_BOX = 0;
 const BULLET_SPEED = 1;
 
 class Bullet {
-    constructor(pos_v3, rot_v3) {
+    constructor(pos_v3, rot_v3, id) {
+        this.id  = id;
         this.pos = pos_v3;
         this.rot = rot_v3;
         this.boundingBox = BULLET_BOUNDING_BOX;

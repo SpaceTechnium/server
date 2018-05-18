@@ -73,9 +73,10 @@ function collision_json () {
 
   for (b of bulletsArray) {
     bullet_collision.push({
-      pos_x : b.pos.x,
-      pos_y : b.pos.y,
-      pos_z : b.pos.z,
+      uniid: b.id,
+      pos_x: b.pos.x,
+      pos_y: b.pos.y,
+      pos_z: b.pos.z,
       boundbox: 0
     });
   }
