@@ -228,11 +228,18 @@ function update_server() {
   update_bullets();
   // Players are updated by their messages
 
-  ws.send(JSON.stringify({
-    type: "update",
-    tick: tick,
-    players: playersArray,
-    bullets: bulletsArray,
-    ranking: rankingArray
-  }));
+  // Broadcast to all.
+  wss.broadcast = function broadcast(data) {
+    wss.clients.forEach(function each(client) {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({
+          type: "update",
+          tick: tick,
+          players: playersArray,
+          bullets: bulletsArray,
+          ranking: rankingArray
+        }));
+      }
+    });
+  };
 }
