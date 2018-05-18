@@ -52,12 +52,13 @@ class Planet {
     // semimajor			-> Semimajor distance.
     // id                   -> Unique ID 
 
-    constructor(vectorPos, radius, speed, semiminor, semimajor, id) {
+    constructor(vectorPos, radius, speed, semiminor, semimajor, id, sunPos) {
         this.pos = vectorPos;
         this.radius = radius;
         this.speed = speed;
         this.semiminor = semiminor;
         this.semimajor = semimajor;
+        this.vectorPos = sunPos;
         this.id = id;
     }
 
@@ -108,7 +109,7 @@ class SolarSystem {
         // Spawn Planets
         for (var i = 0; i < this.numPlanets; i++) {
             placeboGen(randomizer, REAL1, 3);
-            this.arrayPlanets.push(new Planet(this.pos, this.infoPlanets[i*4], this.infoPlanets[i*4+1], this.infoPlanets[i*4+2], this.infoPlanets[i*4+3]),id++);
+            this.arrayPlanets.push(new Planet(this.pos, this.infoPlanets[i*4], this.infoPlanets[i*4+1], this.infoPlanets[i*4+2], this.infoPlanets[i*4+3]), id++, this.pos);
         }
     }
 
