@@ -2,8 +2,8 @@
 // solarSystem.js
 //=========================================================
 // Solar system generation constants
-const SOLAR_SYSTEM_W 	= 7;
-const SOLAR_SYSTEM_H 	= 7;
+const SOLAR_SYSTEM_W 	= 15;
+const SOLAR_SYSTEM_H 	= 15;
 const SEMI_MAJOR		= 35;
 const SEMI_MINOR		= 35;
 const SEMI_MAJOR_OFFSET	= 10;
@@ -21,6 +21,19 @@ const SYSTEM_GLOBAL_HEIGHT_VARIATION = 50;
 const SUN_MIN_RADIUS    = 1;
 const SUN_MAX_RADIUS    = 30;
 
+const TypeGen = Object.freeze({"real1":1, "int31":2});
+
+function placeboGen(Type, repeat = 1) {
+    if(Type == Typegen.real1){
+        while(repeat--)
+            randomizer.genrand_real1();
+    }
+    else if(Type == Typegen.int31) {
+        while(repeat--)
+            randomizer.genrand_int31();
+    }
+}
+
 class Vector3 {
     constructor(x,y,z) {
         this.x = x;
@@ -36,16 +49,32 @@ class Planet {
     // speed				-> Orbit Speed.
     // semiminor			-> Semiminor distance.
     // semimajor			-> Semimajor distance.
-    // planet				-> Planet Object3D.
+    // id                   -> Unique ID 
 
-    constructor(vectorPos, radius) {
+    constructor(vectorPos, radius, speed, semiminor, semimajor, id) {
         this.pos = vectorPos;
         this.radius = radius;
+        this.speed = speed;
+        this.semiminor = semiminor;
+        this.semimajor = semimajor;
+        this.id = id;
+    }
+
+    getSpeed() {
+        return this.speed;
     }
     
+    getSemiminor() {
+        return this.semiminor;
+    }
+
+    getSemimajor() {
+        return this.semimajor;
+    }
+
     // Update planet position.
     update(tick) {
-        this.planet.position.set(this.vectorPos.x + this.semiminor * Math.cos(tick*this.speed), this.vectorPos.z, this.vectorPos.y + this.semimajor * Math.sin(tick*this.speed));
+        this.planet.position.set(this.vectorPos.x + this.semiminor * Math.cos(tick * this.speed), this.vectorPos.z, this.vectorPos.y + this.semimajor * Math.sin(tick * this.speed));
     }
 }
 
@@ -59,32 +88,39 @@ class SolarSystem {
     // sunRadius			-> value that is used as the Sun's radius.
 
     constructor(vectorPos, numPlanets, infoPlanets, sunRadius) {
+        this.id = 0;
         this.pos = vectorPos;
-        this.sunRadius = sunRadius;
         this.numPlanets = numPlanets;
         this.infoPlanets = infoPlanets;
+        this.sunRadius = sunRadius;
         this.arrayPlanets = [];
+        this.sun = null;
     }
       
-    spawn(randomizer) {
+    spawn(randomizer, id) {
+        // Spawn Sun.
+        placeboGen(real1,2);
+        this.id = id++;
+
         // Spawn Planets
         for (var i = 0; i < this.numPlanets; i++) {
-            this.arrayPlanets.push(new Planet(this.pos, this.infoPlanets[i]));
+            placeboGen(real1,3);
+            this.arrayPlanets.push(new Planet(this.pos, this.infoPlanets[i*4], this.infoPlanets[i*4+1], this.infoPlanets[i*4+2], this.infoPlanets[i*4+3]),id++);
         }
     }
 
     // Update Planets.
-    update() {
+    update(tick) {
         for (var i = 0; i < this.numPlanets; i++) {
             this.arrayPlanets[i].update(tick);
         }
     }
-
 }
 
 class Universe {
     constructor() {
         this.solarSystems = [];
+        this.id = 2;
     }
     
     generate(randomizer) {
@@ -96,6 +132,11 @@ class Universe {
     
                 for (var k = 0; k < numPlanets; k++) {
                     infoPlanets.push(PLANET_MIN_RADIUS + (randomizer.genrand_int31() % PLANET_MAX_RADIUS)); 
+                    infoPlanets.push(PLANET_MIN_SPEED + (randomizer.genrand_real1() * PLANET_MAX_SPEED));
+                    infoPlanets.push(semiminor + (randomizer.genrand_real1() * k));
+                    infoPlanets.push(semimajor + (randomizer.genrand_real1() * k));
+                    semiminor += SEMI_MINOR_OFFSET;
+                    semimajor += SEMI_MAJOR_OFFSET;
                 }
                 this.solarSystems.push(
                     new SolarSystem(
@@ -113,8 +154,10 @@ class Universe {
     }
 
     spawn(randomizer) {
-        for (var i = 0; i < (SOLAR_SYSTEM_W * SOLAR_SYSTEM_H); i++)
-            this.solarSystems[i].spawn(randomizer);
+        for (var i = 0; i < (SOLAR_SYSTEM_W * SOLAR_SYSTEM_H); i++) {
+            this.solarSystems[i].spawn(randomizer, this.id);
+            this.id = this.id + this.solarSystems[i].numPlanets + 1;
+        }
     }
 
     update(tick) {
