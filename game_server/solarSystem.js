@@ -52,13 +52,13 @@ class Planet {
     // semimajor			-> Semimajor distance.
     // id                   -> Unique ID 
 
-    constructor(vectorPos, radius, speed, semiminor, semimajor, id, sunPos) {
+    constructor(vectorPos, radius, speed, semiminor, semimajor, id) {
         this.pos = vectorPos;
         this.radius = radius;
         this.speed = speed;
         this.semiminor = semiminor;
         this.semimajor = semimajor;
-        this.vectorPos = sunPos;
+        this.vectorPos = vectorPos;
         this.id = id;
     }
 
@@ -76,7 +76,7 @@ class Planet {
 
     // Update planet position.
     update(tick) {
-        this.pos = this.vectorPos.x + this.semiminor * Math.cos(tick * this.speed);
+        this.pos.x = this.vectorPos.x + this.semiminor * Math.cos(tick * this.speed);
         this.pos.y = this.vectorPos.y + this.semimajor * Math.sin(tick * this.speed);
         this.pos.z = this.vectorPos.z;
     }
@@ -109,7 +109,7 @@ class SolarSystem {
         // Spawn Planets
         for (var i = 0; i < this.numPlanets; i++) {
             placeboGen(randomizer, REAL1, 3);
-            this.arrayPlanets.push(new Planet(this.pos, this.infoPlanets[i*4], this.infoPlanets[i*4+1], this.infoPlanets[i*4+2], this.infoPlanets[i*4+3]), id++, this.pos);
+            this.arrayPlanets.push(new Planet(this.pos, this.infoPlanets[i*4], this.infoPlanets[i*4+1], this.infoPlanets[i*4+2], this.infoPlanets[i*4+3]), id++);
         }
     }
 
