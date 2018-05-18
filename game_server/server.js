@@ -27,9 +27,17 @@ function generate_universe () {
   the_whole_universe_was_in_a_hot_dense_state.spawn(randomizer);
 }
 
-function find_player(websocket) {
+function find_player_by_socket(websocket) {
   for (player of playersArray) {
     if (player.ws === websocket)
+      return player;
+  }
+  return null;
+}
+
+function find_player_by_name (name) {
+  for (player of playersArray) {
+    if (player.name === name)
       return player;
   }
   return null;
@@ -148,7 +156,7 @@ wss.on('connection', function connection(ws) {
           type: "kick",
           error: "Name is either already present or too long (15 caracters max)"
         }));
-        var player = find_player(ws);
+        var player = find_player_by_socket(ws);
         if (player)
           remove_player(player);
         ws.close();
@@ -164,7 +172,7 @@ wss.on('connection', function connection(ws) {
     
     else {
       // Received a player update from his position, find him and update
-      var player = find_player(ws);
+      var player = find_player_by_socket(ws);
       player.update(new Vector3(msg.pos_x, msg.pos_y, msg.pos_z), new Vector3(msg.rot_x, msg.rot_y, msg.rot_z));
     }
   });
