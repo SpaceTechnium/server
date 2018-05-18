@@ -40,6 +40,7 @@ class Player {
         this.rot_z = 0;
         this.shield = 0;
         this.conquest = -1;
+        this.shield = 1.0;
         this.planets = [];
         this.bullets = [];
         this.boundingBox = PLAYER_BOUNDING_BOX;

@@ -21,10 +21,8 @@ var update_server_timer = null;
 var playersArray = [];
 var bulletsArray = [];
 var rankingArray = [];
-var tick = process.hrtime();
+var tick = 0;
 var the_whole_universe_was_in_a_hot_dense_state = new Universe();
-
-
 
 generate_universe();
 
@@ -55,6 +53,23 @@ function remove_player (player) {
   if (index > -1) {
     playersArray.splice(player, 1);
   }
+}
+
+function build_player_update_array() {
+  var pupdate = []
+  for (p of playersArray) {
+    pupdate.push({
+      pos_x: p.pos_x,
+      pos_y: p.pos_y,
+      pos_z: p.pos_z,
+      rot_x: p.rot_x,
+      rot_y: p.rot_y,
+      rot_z: p.rot_z,
+      score: p.score,
+      shield: p.shield
+    });
+  }
+  return pupdate;
 }
 
 function collision_json () {
@@ -131,12 +146,14 @@ function valid_nickname(nick) {
 }
 
 function update_ranking() {
-  var rank = playersArray.map(p => {
-    var rank = {};
-    rank[name] = p.name;
-    rank[score] = p.score;
-    return rank;
-  });
+    var rank = [];
+    for (p of playersArray) {
+      rank.push({
+        name: p.player_name,
+        score: p.score
+      });
+    }
+
   rankingArray = rank.sort((a, b) => b - a); // sort in descending order
 }
 
@@ -190,8 +207,9 @@ wss.on('connection', function connection(ws) {
       player.update(new Vector3(msg.pos_x, msg.pos_y, msg.pos_z), new Vector3(msg.rot_x, msg.rot_y, msg.rot_z));
     }
   });
+  num_players += 1;
+
   var new_player = new Player('Guest', ws);
-  num_players++;
   if (num_players > 0) {
     update_server_timer = setInterval(update_server, UPDATE_INTERVAL);
   }
@@ -212,7 +230,7 @@ wss.on('connection', function connection(ws) {
 
 
 function update_universe() {
-  tick = process.hrtime(tick);
+  tick = performance.now();
   the_whole_universe_was_in_a_hot_dense_state.update(tick); 
 }
 
@@ -222,24 +240,25 @@ function update_bullets() {
   }
 }
 
+wss.broadcast = function broadcast(data) {
+  wss.clients.forEach(function each(client) {
+    client.send(data);
+  });
+}
+
 function update_server() {
   // Update
   update_universe();
   update_bullets();
+  update_ranking();
   // Players are updated by their messages
 
   // Broadcast to all.
-  wss.broadcast = function broadcast(data) {
-    wss.clients.forEach(function each(client) {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({
-          type: "update",
-          tick: tick,
-          players: playersArray,
-          bullets: bulletsArray,
-          ranking: rankingArray
-        }));
-      }
-    });
-  };
+  wss.broadcast(JSON.stringify({
+    type: "update",
+    tick: tick,
+    players: build_player_update_array(),
+    bullets: bulletsArray,
+    ranking: rankingArray
+  }));
 }
