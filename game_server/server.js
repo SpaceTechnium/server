@@ -68,6 +68,16 @@ function collision_json () {
   });
 }
 
+function valid_nickname(nick) {
+  if (nick.length > 15)
+    return false;
+  for (p of playersArray) {
+    if (p.name === name)
+      return false;
+  }
+  return true;
+}
+
 function update_ranking() {
   var rank = playersArray.map(p => {
     var rank = {};
@@ -90,8 +100,19 @@ wss.on('connection', function connection(ws) {
   ws.on('message', function incoming(message) {
     var msg = JSON.parse(message);
     // If message is type get_name then attach the given name to socket
-    if (msg.type === 'newName') {
-      continue;
+    if (msg.type === 'nickname') {
+      if (valid_nickname(msg.nick)) {
+        for (player of playersArray)
+          if (player.ws === ws)
+            player.name = msg.nick;
+      }
+      else {
+        ws.send(JSON.stringify({
+          type: "error",
+          error: "Name is either already present or too long (15 caracters max)"
+        }));
+        ws.close();
+      }
     }
     
     else if (msg.type === 'newBullet') {
@@ -114,10 +135,15 @@ wss.on('connection', function connection(ws) {
   
   ws.send(JSON.stringify({
     type: "handshake",
-    tick: tick,
     seed: marsenne_seed,
-    players: playersArray,
-    bullets: bulletsArray,
-    ranking: rankingArray 
   }));
 });
+
+// Update
+// ws.send(JSON.stringify({
+//   type: "update",
+//   seed: marsenne_seed,
+//   players: playersArray,
+//   bullets: bulletsArray,
+//   ranking: rankingArray
+// }));
