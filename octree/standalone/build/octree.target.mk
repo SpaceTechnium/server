@@ -33,17 +33,10 @@ CFLAGS_CC_Debug := \
 	-std=gnu++0x
 
 INCS_Debug := \
-<<<<<<< HEAD
 	-I/home/pmsilva1/.node-gyp/8.11.2/include/node \
 	-I/home/pmsilva1/.node-gyp/8.11.2/src \
 	-I/home/pmsilva1/.node-gyp/8.11.2/deps/uv/include \
 	-I/home/pmsilva1/.node-gyp/8.11.2/deps/v8/include \
-=======
-	-I/usr/include/nodejs/include/node \
-	-I/usr/include/nodejs/src \
-	-I/usr/include/nodejs/deps/uv/include \
-	-I/usr/include/nodejs/deps/v8/include \
->>>>>>> 3092e18ab73de9a6bdbfdf09ed0aefa21c4f7930
 	-I$(srcdir)/..
 
 DEFS_Release := \
@@ -74,17 +67,10 @@ CFLAGS_CC_Release := \
 	-std=gnu++0x
 
 INCS_Release := \
-<<<<<<< HEAD
 	-I/home/pmsilva1/.node-gyp/8.11.2/include/node \
 	-I/home/pmsilva1/.node-gyp/8.11.2/src \
 	-I/home/pmsilva1/.node-gyp/8.11.2/deps/uv/include \
 	-I/home/pmsilva1/.node-gyp/8.11.2/deps/v8/include \
-=======
-	-I/usr/include/nodejs/include/node \
-	-I/usr/include/nodejs/src \
-	-I/usr/include/nodejs/deps/uv/include \
-	-I/usr/include/nodejs/deps/v8/include \
->>>>>>> 3092e18ab73de9a6bdbfdf09ed0aefa21c4f7930
 	-I$(srcdir)/..
 
 OBJS := \
