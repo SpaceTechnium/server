@@ -16,12 +16,15 @@ const UPDATE_INTERVAL = 1000 / TICKRATE;
 const PLANET_BOUND_BOX_FACTOR = 1.2;
 
 var bullet_id = 0;
-
+var num_players = 0;
+var update_server_timer = null;
 var playersArray = [];
 var bulletsArray = [];
 var rankingArray = [];
-var tick = 0;
+var tick = process.hrtime();
 var the_whole_universe_was_in_a_hot_dense_state = new Universe();
+
+
 
 generate_universe();
 
@@ -146,6 +149,13 @@ process.on('message', (m, socket) => {
 
 
 wss.on('connection', function connection(ws) {
+  ws.on('close', function () {
+    num_players--;
+    if (num_players < 0) {
+      num_players = 0;
+      clearInterval(update_server_timer);
+    }
+  })
   ws.on('message', function incoming(message) {
     var msg = JSON.parse(message);
     // If message is type get_name then attach the given name to socket
@@ -181,7 +191,10 @@ wss.on('connection', function connection(ws) {
     }
   });
   var new_player = new Player('Guest', ws);
-
+  num_players++;
+  if (num_players > 0) {
+    update_server_timer = setInterval(update_server, UPDATE_INTERVAL);
+  }
 
   new_player.pos_x = Math.random() * 1024 - 512;
   new_player.pos_y = Math.random() * 256 - 128; 
@@ -199,7 +212,7 @@ wss.on('connection', function connection(ws) {
 
 
 function update_universe() {
-  tick = performance.now();
+  tick = process.hrtime(tick);
   the_whole_universe_was_in_a_hot_dense_state.update(tick); 
 }
 
@@ -223,5 +236,3 @@ function update_server() {
     ranking: rankingArray
   }));
 }
-
-setInterval(update_server, UPDATE_INTERVAL);
