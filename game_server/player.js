@@ -18,9 +18,9 @@ class Bullet {
     }
 
     update () {
-        this.pos.x += (this.rot.x * speed);
-        this.pos.y += (this.rot.y * speed);
-        this.pos.z += (this.rot.z * speed);
+        this.pos.x += (this.rot.x * BULLET_SPEED);
+        this.pos.y += (this.rot.y * BULLET_SPEED);
+        this.pos.z += (this.rot.z * BULLET_SPEED);
     }
 }
 

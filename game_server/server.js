@@ -124,7 +124,7 @@ function valid_nickname(nick) {
   if (nick.length > 15)
     return false;
   for (p of playersArray) {
-    if (p.name === name)
+    if (p.name === nick)
       return false;
   }
   return true;
@@ -179,8 +179,8 @@ wss.on('connection', function connection(ws) {
 
     else if (msg.type === 'newBullet') {
       bulletsArray.push(new Bullet(
-        Vector3(msg.pos_x, msg.pos_y, msg.pos_z),
-        Vector3(msg.rot_x, msg.rot_y, msg.rot_z)
+        new Vector3(msg.pos_x, msg.pos_y, msg.pos_z),
+        new Vector3(msg.rot_x, msg.rot_y, msg.rot_z)
       ));
     }
     
