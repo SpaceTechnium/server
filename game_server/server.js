@@ -55,10 +55,17 @@ function remove_player (player) {
   }
 }
 
+function update_player_name (socket, name) {
+  var player = find_player_by_socket(socket);
+  var i = playersArray.indexOf(player);
+  playersArray[i].player_name = name;
+}
+
 function build_player_update_array() {
   var pupdate = []
   for (p of playersArray) {
     pupdate.push({
+      name: p.player_name,
       pos_x: p.pos_x,
       pos_y: p.pos_y,
       pos_z: p.pos_z,
@@ -177,11 +184,8 @@ wss.on('connection', function connection(ws) {
     var msg = JSON.parse(message);
     // If message is type get_name then attach the given name to socket
     if (msg.type === 'nickname') {
-      if (valid_nickname(msg.nick)) {
-        for (player of playersArray)
-          if (player.ws === ws)
-            player.name = msg.nick;
-      }
+      if (valid_nickname(msg.nick))
+        update_player_name(ws, msg.nick);
       else {
         ws.send(JSON.stringify({
           type: "kick",
