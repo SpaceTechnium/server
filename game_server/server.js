@@ -208,7 +208,7 @@ wss.on('connection', function connection(ws) {
     else {
       // Received a player update from his position, find him and update
       var player = find_player_by_socket(ws);
-      player.update(new Vector3(msg.pos_x, msg.pos_y, msg.pos_z), new Vector3(msg.rot_x, msg.rot_y, msg.rot_z));
+      player.update(new Vector3(msg.ship.pos_x, msg.ship.pos_y, msg.ship.pos_z), new Vector3(msg.ship.rot_x, msg.ship.rot_y, msg.ship.rot_z));
     }
   });
   num_players += 1;
