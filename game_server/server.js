@@ -146,7 +146,7 @@ function valid_nickname(nick) {
   if (nick.length > 15)
     return false;
   for (p of playersArray) {
-    if (p.name === nick)
+    if (p.player_name === nick)
       return false;
   }
   return true;
@@ -246,7 +246,16 @@ function update_bullets() {
 
 wss.broadcast = function broadcast(data) {
   wss.clients.forEach(function each(client) {
-    client.send(data);
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(data);
+    }
+    else {
+      var player = find_player_by_socket(client);
+      console.log("terminating" + player);
+      if (player)
+        remove_player(player);
+      client.terminate();
+    }
   });
 }
 
