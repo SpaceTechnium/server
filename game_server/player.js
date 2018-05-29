@@ -7,7 +7,7 @@ class Vector3 {
 }
 
 const BULLET_BOUNDING_BOX = 0;
-const BULLET_SPEED = 1;
+const BULLET_SPEED = 2;
 
 class Bullet {
     constructor(pos_v3, rot_v3, id) {
@@ -18,9 +18,9 @@ class Bullet {
     }
 
     update () {
-        this.pos.x += (this.rot.x * BULLET_SPEED);
-        this.pos.y += (this.rot.y * BULLET_SPEED);
-        this.pos.z += (this.rot.z * BULLET_SPEED);
+        this.pos.x += this.rot.x * BULLET_SPEED;
+        this.pos.y += this.rot.y * BULLET_SPEED;
+        this.pos.z += this.rot.z * BULLET_SPEED;
     }
 }
 
