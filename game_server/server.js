@@ -4,12 +4,23 @@ const WebSocket = require('ws');
 const {Vector3, Bullet, Player} = require("./player.js");
 const Universe = require("./solarSystem.js");
 const MersenneTwister = require('./mersenne-twister.js');
+const https = require('https');
 
 const {
   performance
 } = require('perf_hooks');
 
-const wss = new WebSocket.Server({ port: 8082 });
+var server = new https.createServer({
+  cert: fs.readFileSync('/etc/letsencrypt/live/victorcarvalho.pt/fullchain.pem'),
+  key: fs.readFileSync('/etc/letsencrypt/live/victorcarvalho.pt/privkey.pem'),
+  hostname: "127.0.0.1",
+  port: 8082
+});
+
+console.log("Started server at Port 8082");
+
+const wss = new WebSocket.Server({ server });
+
 const MARSENNE_SEED = 42;
 const TICKRATE = 30;
 const UPDATE_INTERVAL = 1000 / TICKRATE;
@@ -276,3 +287,5 @@ function update_server() {
     ranking: rankingArray
   }));
 }
+
+server.listen(8082);
