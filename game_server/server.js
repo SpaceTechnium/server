@@ -5,12 +5,23 @@ const WebSocket = require('ws');
 const {Vector3, Bullet, Player} = require("./player.js");
 const Universe = require("./solarSystem.js");
 const MersenneTwister = require('./mersenne-twister.js');
+const https = require('https');
 
 const {
   performance
 } = require('perf_hooks');
 
-const wss = new WebSocket.Server({ port: 8082 });
+var server = new https.createServer({
+  cert: fs.readFileSync('/etc/letsencrypt/live/victorcarvalho.pt/fullchain.pem'),
+  key: fs.readFileSync('/etc/letsencrypt/live/victorcarvalho.pt/privkey.pem'),
+  hostname: "127.0.0.1",
+  port: 8082
+});
+
+console.log("Started server at Port 8082");
+
+const wss = new WebSocket.Server({ server });
+
 const MARSENNE_SEED = 42;
 const TICKRATE = 30;
 const UPDATE_INTERVAL = 1000 / TICKRATE;
@@ -168,7 +179,7 @@ function update_ranking() {
 // IPC between master HTTP server and this instance
 process.on('message', (m, socket) => {
   if (m === 'available') {
-    process.send('192.168.0.1:8082');
+    process.send('10.16.1.233:8080');
   }
 });
 
@@ -201,8 +212,9 @@ wss.on('connection', function connection(ws) {
 
     else if (msg.type === 'newBullet') {
       bulletsArray.push(new Bullet(
-        new Vector3(msg.pos_x, msg.pos_y, msg.pos_z),
-        new Vector3(msg.rot_x, msg.rot_y, msg.rot_z)
+        new Vector3(msg.bullet.pos_x, msg.bullet.pos_y, msg.bullet.pos_z),
+        new Vector3(msg.bullet.rot_x, msg.bullet.rot_y, msg.bullet.rot_z),
+        bullet_id++
       ));
     }
     
@@ -276,3 +288,5 @@ function update_server() {
     ranking: rankingArray
   }));
 }
+
+server.listen(8082);

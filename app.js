@@ -30,7 +30,7 @@ app.get('/', function (req, res) {
 
 app.get('/requestserver', function(req, res) {
   game_servers.send('available');
-  res.send('ws://localhost:8082');
+  res.send('wss://victorcarvalho.pt/ws');
 })
 
 app.listen(8080, function () {
