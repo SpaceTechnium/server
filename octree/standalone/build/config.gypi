@@ -66,7 +66,7 @@
     "v8_trace_maps": 0,
     "v8_use_snapshot": "true",
     "want_separate_host_toolset": 0,
-    "nodedir": "/home/claubit/.node-gyp/8.11.2",
+    "nodedir": "/home/pmsilva1/.node-gyp/8.11.3",
     "standalone_static_library": 1
   }
 }

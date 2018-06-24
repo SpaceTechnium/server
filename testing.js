@@ -1,9 +1,9 @@
 const execFile = require('child_process').execFile
 const fs = require("fs");
 
-var jsony = require("./handshake.json");
+/*var jsony = require("./handshake.json");*/
 
-var array = [];
+/*var array = [];
 var data = [];
 for (key in jsony)
 {
@@ -23,12 +23,24 @@ Object.keys(jsony2).forEach(function(key){
   });
 //jsony2.push(jsony.);
 stringToSend = JSON.stringify(jsony2);
-console.log(stringToSend); //Object.keys(jsony2)
+console.log(stringToSend); //Object.keys(jsony2) */
 
-var child = execFile("octree/standalone/build/Release/octree",[stringToSend],
+var child = execFile("octree/standalone/build/Release/octree",
   function (error, stdout, stderr) {
     // This callback is invoked once the child terminates
     // You'd want to check err/stderr as well!
-    console.log("Here is the complete output of the program: ");
-    console.log(stdout)
+    var response_json = JSON.parse(stdout);
+    console.log("Here is the complete output of the program: \n");
+    console.log(stdout+"\n\n");
+    
+    response_json.collisions.forEach(function(data, index) {
+        console.log(index + " " + data);
+            for(key in data)
+            {
+                console.log(key + " " + data[key]);
+            }
+    });
 });
+
+
+
