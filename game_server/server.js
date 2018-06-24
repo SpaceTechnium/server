@@ -26,6 +26,8 @@ const MARSENNE_SEED = 42;
 const TICKRATE = 30;
 const UPDATE_INTERVAL = 1000 / TICKRATE;
 const PLANET_BOUND_BOX_FACTOR = 1.2;
+const BULLET_DMG = 0.51; // Player health is 1.0
+const CONQUEST_RATE = 0.05/TICKRATE;
 
 var bullet_id = 0;
 var num_players = 0;
@@ -33,6 +35,10 @@ var update_server_timer = null;
 var playersArray = [];
 var bulletsArray = [];
 var rankingArray = [];
+var deadPlayersArray = [];
+var deadBulletsArray = [];
+var contestedPlanetsArray = [];
+var guestnum = 0;
 var tick = 0;
 var the_whole_universe_was_in_a_hot_dense_state = new Universe();
 
@@ -42,6 +48,21 @@ function generate_universe () {
   var randomizer = new MersenneTwister(MARSENNE_SEED);
   the_whole_universe_was_in_a_hot_dense_state.generate(randomizer);
   the_whole_universe_was_in_a_hot_dense_state.spawn(randomizer);
+}
+
+function find_planet_by_id(id) {
+  var prev;
+  for (system of the_whole_universe_was_in_a_hot_dense_state.solarSystems) {
+    prev = system.arrayPlanets;
+    if(system.id > object.uuid)
+      break;                
+  }
+
+  for (p of prev) {
+    if(p.id == object.uuid) {
+      return p;  
+    }
+  }
 }
 
 function find_player_by_socket(websocket) {
@@ -54,7 +75,7 @@ function find_player_by_socket(websocket) {
 
 function find_player_by_name (name) {
   for (player of playersArray) {
-    if (player.name === name)
+    if (player.player_name === name)
       return player;
   }
   return null;
@@ -87,6 +108,18 @@ function build_player_update_array() {
       score: p.score,
       shield: p.shield
     });
+
+    if(p.conquest == -2)
+    {
+      ws = p.socket;
+      ws.send(JSON.stringify({
+        type: "planet",
+        conquest: 
+        {
+          percent: -1
+        }
+      }));
+    }
   }
   return pupdate;
 }
@@ -131,6 +164,8 @@ function collision_json () {
   }
 
   for (p of playersArray) {
+    if(p.conquest > 0)
+      p.conquest = -2;
     player_collision.push({
       name: p.name,
       pos_x: p.pos_x,
@@ -151,6 +186,98 @@ function collision_json () {
     // This callback is invoked once the child terminates
     // You'd want to check err/stderr as well!
     var response_json = JSON.parse(stdout);
+    
+    response_json.collisions.forEach(function(data, index) {
+      //console.log(index + " " + data);
+      var player = data["player"];
+      var object = data["object"];
+      
+      var player_server = find_player_by_name(player.player_name);
+
+      if(object.planet == 1) {
+        if(object.conquest == 1) {  // Conquest
+          var planet_server = find_planet_by_id(object.uuid);
+          if(planet_server) {
+            if(planet_server.state === "Neutral") {
+              planet_server.progress += CONQUEST_RATE;
+              if(planet_server.progress >= 1) {
+                planet_server.progress = 1;
+                planet_server.state = "Conquered";
+                planet_server.owner = player.player_name;
+                
+                player_server.score += 1;
+                player_server.planets.push(planet_server);
+                
+                ws = player_server.socket;
+                ws.send(JSON.stringify({
+                  type: "planet",
+                  conquest: 
+                  {
+                    id: planet_server.id,
+                    percent: planet_server.progress,
+                    name: null
+                  }
+                }));
+              }
+            }
+            else if(planet_server.state === "Conquered") {
+              if(player_server.name != planet_server.owner) {
+                planet_server.progress -= CONQUEST_RATE;
+                planet_server.state = "Raid";
+
+                ws = player_server.socket;
+                ws.send(JSON.stringify({
+                  type: "planet",
+                  conquest: 
+                  {
+                    id: planet_server.id,
+                    percent: planet_server.progress,
+                    name: planet_server.owner
+                  }
+                }));
+              }
+            }
+            else if(planet_server.state === "Contested") {
+
+            }
+            else if(planet_server.state === "Raid")
+              planet_server.progress -= CONQUEST_RATE;
+              if(planet_server.progress <= 0) {
+                planet_server.progress = 0;
+                planet_server.state = "Neutral";
+              }
+              else {
+                ws = player_server.socket;
+                ws.send(JSON.stringify({
+                  type: "planet",
+                  conquest: 
+                  {
+                    id: planet_server.id,
+                    percent: planet_server.progress,
+                    name: planet_server.owner
+                  }
+                }));
+              }
+          }
+        }
+        else {  //crashed into planet
+          if(player_server) {
+            players_server.shield = 0;
+            deadPlayersArray.push(player_server.player_name);
+            remove_player(player_server);
+          }
+        }
+      }
+      else {  // Bullet hit player
+        if(player_server) {
+          players_server.shield -= BULLET_DMG;
+          if(players_server.shield <= 0) {
+            deadPlayersArray.push(player_server.player_name);
+            remove_player(player_server);
+          }
+        }
+      }
+    });
   });
 }
 
@@ -161,6 +288,7 @@ function valid_nickname(nick) {
     if (p.player_name === nick)
       return false;
   }
+  guestnum--;
   return true;
 }
 
@@ -174,6 +302,23 @@ function update_ranking() {
     }
 
   rankingArray = rank.sort((a, b) => b - a); // sort in descending order
+}
+
+function update_dead() {
+  var message = [];
+  for(p of deadPlayersArray) {
+    message.push({
+      name: p.player_name
+    })
+  }
+
+  for(p of playersArray) {
+    ws = p.socket;
+    ws.send(JSON.stringify({
+      type: "playerOut",
+      players: message
+    }));
+  }
 }
 
 // IPC between master HTTP server and this instance
@@ -226,7 +371,7 @@ wss.on('connection', function connection(ws) {
   });
   num_players += 1;
 
-  var new_player = new Player('Guest', ws);
+  var new_player = new Player('Guest_'+ guestnum++, ws);
   if (num_players > 0) {
     update_server_timer = setInterval(update_server, UPDATE_INTERVAL);
   }
@@ -253,7 +398,9 @@ function update_universe() {
 
 function update_bullets() {
   for (bullet of bulletsArray) {
-    bullet.update();
+    if(!bullet.update(UPDATE_INTERVAL)) {
+      deadBulletsArray.push(bullet.id);
+    }
   }
 }
 
@@ -276,7 +423,9 @@ function update_server() {
   // Update
   update_universe();
   update_bullets();
+  collision_json ();
   update_ranking();
+  
   // Players are updated by their messages
 
   // Broadcast to all.
@@ -284,7 +433,9 @@ function update_server() {
     type: "update",
     tick: tick,
     players: build_player_update_array(),
+    playersOut: deadPlayersArray,
     bullets: bulletsArray,
+    bulletsOut: deadBulletsArray,
     ranking: rankingArray
   }));
 }

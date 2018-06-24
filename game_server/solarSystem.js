@@ -51,6 +51,9 @@ class Planet {
     // semiminor			-> Semiminor distance.
     // semimajor			-> Semimajor distance.
     // id                   -> Unique ID 
+    // owner                -> Player who owns it
+    // state                -> Current state of the planet: "Neutral", "Conquered", "Contested", "Raid"
+    // progress             -> % of planet conquest
 
     constructor(vectorPos, radius, speed, semiminor, semimajor, id) {
         this.pos = vectorPos;
@@ -60,6 +63,9 @@ class Planet {
         this.semimajor = semimajor;
         this.vectorPos = vectorPos;
         this.id = id;
+        this.owner = null;
+        this.state = "Neutral";
+        this.progress = 0;
     }
 
     getSpeed() {
@@ -79,6 +85,13 @@ class Planet {
         this.pos.x = this.vectorPos.x + this.semiminor * Math.cos(tick * this.speed);
         this.pos.y = this.vectorPos.y + this.semimajor * Math.sin(tick * this.speed);
         this.pos.z = this.vectorPos.z;
+    }
+
+    // Update Conquest Status
+    update_status(owner,state,progress) {
+        this.owner = owner;
+        this.state = state;
+        this.progress = progress;
     }
 }
 
@@ -169,6 +182,7 @@ class Universe {
         for (var i = 0; i < (SOLAR_SYSTEM_W * SOLAR_SYSTEM_H); i++)
             this.solarSystems[i].update(tick);
     }
+
 }
 
 module.exports = Universe;
