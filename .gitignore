@@ -1,3 +1,9 @@
 node_modules/
 resources/
 Old_octree/
+octree/standalone/build/Makefile
+octree/standalone/build/binding.Makefile
+octree/standalone/build/config.gypi
+octree/standalone/build/octree.target.mk
+octree/standalone/build/Release/.deps
+octree/standalone/build/Release/obj.target
